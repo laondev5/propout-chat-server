@@ -62,15 +62,15 @@ async function fetchUsers() {
     // Specifically use response.data.user
     globalUsers = response.data.user;
 
-    console.log(
-      "Fetched Users:",
-      globalUsers.map((user) => ({
-        id: user.id, // Use user.id instead of user._id
-        name: user.name,
-      }))
-    );
+    // console.log(
+    //   "Fetched Users:",
+    //   globalUsers.map((user) => ({
+    //     id: user.id, // Use user.id instead of user._id
+    //     name: user.name,
+    //   }))
+    // );
 
-    console.log(`Fetched ${globalUsers.length} users`);
+    //console.log(`Fetched ${globalUsers.length} users`);
     return globalUsers;
   } catch (error) {
     console.error("Error fetching users:", error.message);
@@ -88,25 +88,25 @@ function findUserById(userId) {
   // Convert userId to string and ensure it's a number
   const numericUserId = Number(userId);
 
-  console.log(`Searching for user with ID: ${numericUserId}`);
-  console.log(`Total users: ${globalUsers.length}`);
+  // console.log(`Searching for user with ID: ${numericUserId}`);
+  // console.log(`Total users: ${globalUsers.length}`);
 
   // Find user with exact id match
   const user = globalUsers.find((user) => user.id === numericUserId);
 
   if (user) {
-    console.log(`User found:`, {
-      id: user.id,
-      name: user.name,
-    });
+    // console.log(`User found:`, {
+    //   id: user.id,
+    //   name: user.name,
+    // });
     return user;
   }
 
-  console.warn(`No user found for ID: ${numericUserId}`);
-  console.log(
-    "Available user IDs:",
-    globalUsers.map((u) => u.id)
-  );
+  // console.warn(`No user found for ID: ${numericUserId}`);
+  // console.log(
+  //   "Available user IDs:",
+  //   globalUsers.map((u) => u.id)
+  // );
 
   return null;
 }
@@ -127,7 +127,7 @@ const onlineUsers = new Map();
 
 // Socket Connection Handler
 io.on("connection", (socket) => {
-  console.log("New Client Connected:", socket.id);
+  //console.log("New Client Connected:", socket.id);
 
   // User Join Event
   socket.on("user_join", async (userId) => {
@@ -135,7 +135,7 @@ io.on("connection", (socket) => {
 
     // Ensure users are fetched
     if (globalUsers.length === 0) {
-      console.log("No users loaded. Attempting to fetch...");
+      //console.log("No users loaded. Attempting to fetch...");
       await fetchUsers();
     }
 
@@ -149,9 +149,9 @@ io.on("connection", (socket) => {
         status: "online",
         userDetails: user,
       });
-      console.log(`User ${userId} successfully joined`);
+      //console.log(`User ${userId} successfully joined`);
     } else {
-      console.log(`User not found: ${userId}`);
+      //console.log(`User not found: ${userId}`);
 
       // Attempt to refresh users and retry
       await fetchUsers();
@@ -164,9 +164,9 @@ io.on("connection", (socket) => {
           status: "online",
           userDetails: retryUser,
         });
-        console.log(`User ${userId} found after refresh`);
+        //console.log(`User ${userId} found after refresh`);
       } else {
-        console.error(`Persistent failure to find user: ${userId}`);
+        //console.error(`Persistent failure to find user: ${userId}`);
       }
     }
   });
@@ -174,25 +174,25 @@ io.on("connection", (socket) => {
   // Send Message Event
   socket.on("send_message", async (messageData) => {
     try {
-      console.log("Message Data Received:", messageData);
+      //console.log("Message Data Received:", messageData);
 
       // Validate sender and receiver
       const sender = findUserById(messageData.senderId);
       const receiver = findUserById(messageData.receiverId);
 
       // Log detailed connection information
-      console.log(
-        "Online Users Map:",
-        Array.from(onlineUsers.entries()).map(
-          ([userId, socketId]) => `User ${userId}: ${socketId}`
-        )
-      );
+      // console.log(
+      //   "Online Users Map:",
+      //   Array.from(onlineUsers.entries()).map(
+      //     ([userId, socketId]) => `User ${userId}: ${socketId}`
+      //   )
+      // );
 
       if (!sender || !receiver) {
-        console.error("Invalid sender or receiver", {
-          senderId: messageData.senderId,
-          receiverId: messageData.receiverId,
-        });
+        // console.error("Invalid sender or receiver", {
+        //   senderId: messageData.senderId,
+        //   receiverId: messageData.receiverId,
+        // });
         return socket.emit("message_error", {
           error: "Invalid sender or receiver",
           details: {
@@ -228,22 +228,22 @@ io.on("connection", (socket) => {
         // Find Receiver's Socket
         const receiverSocketId = onlineUsers.get(messageData.receiverId);
 
-        console.log("Receiver Socket Details:", {
-          receiverId: messageData.receiverId,
-          receiverSocketId: receiverSocketId,
-        });
+        // console.log("Receiver Socket Details:", {
+        //   receiverId: messageData.receiverId,
+        //   receiverSocketId: receiverSocketId,
+        // });
 
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("receive_message", {
             ...savedMessage.toObject(),
             senderDetails: sender,
           });
-          console.log(
-            `Message sent to ${receiver.name}:`,
-            savedMessage.content
-          );
+          // console.log(
+          //   `Message sent to ${receiver.name}:`,
+          //   savedMessage.content
+          // );
         } else {
-          console.warn(`Receiver ${receiver.name} is not online`);
+          //console.warn(`Receiver ${receiver.name} is not online`);
         }
 
         // Confirm to Sender
@@ -252,7 +252,7 @@ io.on("connection", (socket) => {
           senderDetails: sender,
         });
       } catch (saveError) {
-        console.error("Message save failed:", saveError);
+        //console.error("Message save failed:", saveError);
         socket.emit("message_error", {
           error: "Failed to save message",
           details: saveError.message,
@@ -260,7 +260,7 @@ io.on("connection", (socket) => {
         });
       }
     } catch (error) {
-      console.error("Message sending process failed:", error);
+      //console.error("Message sending process failed:", error);
       socket.emit("message_error", {
         error: "Message sending failed",
         details: error.message,
@@ -318,5 +318,5 @@ const MessageSchema = new mongoose.Schema({
 // Start Server
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  //console.log(`Server running on port ${PORT}`);
 });
